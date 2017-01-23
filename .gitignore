@@ -46,8 +46,4 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-node_modules/**/*.*
-/node_modules/*
-/node_modules/**
-node_modules/.bin/gulp
-node_modules/.bin/gulp.cmd
+/node_modules/
