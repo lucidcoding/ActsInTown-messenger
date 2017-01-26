@@ -66,7 +66,7 @@ export function listen(app: Object): void {
                     callback(null, true);
                 }
             });
-        } else {
+        } else { 
             console.log('Connection error: no token');
             callback('No token', false);
         }

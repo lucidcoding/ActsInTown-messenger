@@ -1,15 +1,15 @@
 import express = require('express');
-/*import bodyParser = require('body-parser');
+//import bodyParser = require('body-parser');
 import cookieParser = require('cookie-parser');
-import path = require('path');
 import passport = require('passport');
 import helmet = require('helmet');
-var compression = require('compression');
-var multipart = require('connect-multiparty');*/
+import compression = require('compression');
+import path = require('path');
+var multipart = require('connect-multiparty');
 
 var expressConfig = function(app: any) {
 
-	/*app.use(multipart());
+	app.use(multipart());
 	app.use(helmet());
 	app.use(compression());
 	app.use(helmet.hsts({
@@ -18,20 +18,19 @@ var expressConfig = function(app: any) {
 		preload: true
 	}));
 	app.use(helmet.noCache({ noEtag: true }));
-	app.use(bodyParser({ limit: '50mb' }));
-	app.use(bodyParser.urlencoded({ extended: false }));
-	app.use(bodyParser.json());
+	//app.use(bodyParser({ limit: '50mb' }));
+	//app.use(bodyParser.urlencoded({ extended: false }));
+	//app.use(bodyParser.json());
 
 	app.use(cookieParser());
 	app.use(passport.initialize());
-	app.all('*', function(req, res, next) {
+	app.all('*', (req: any, res: any, next: any) => {
 		res.header('Access-Control-Allow-Origin', '*');
 		res.header('Access-Control-Allow-Headers', 'X-Requested-With');
 		res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 		next();
-	});*/
+	});
 };
-
 
 export = expressConfig;
 
