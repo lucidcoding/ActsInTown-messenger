@@ -4,4 +4,4 @@ var StartConversationRequest = (function () {
     }
     return StartConversationRequest;
 }());
-module.exports = StartConversationRequest;
+exports.StartConversationRequest = StartConversationRequest;

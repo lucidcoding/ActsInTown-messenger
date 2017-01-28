@@ -1,12 +1,11 @@
 "use strict";
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var messageSchema = new Schema({
+var mongoose_1 = require("mongoose");
+exports.MessageSchema = new mongoose_1.Schema({
     _id: {
         type: String
     },
     conversation: {
-        type: mongoose.Schema.Types.ObjectId, ref: 'Conversation'
+        type: String, ref: 'Conversation'
     },
     userId: {
         type: String
@@ -21,5 +20,4 @@ var messageSchema = new Schema({
         type: String
     },
 });
-var MessageModel = mongoose.model('MessageModel', messageSchema);
-module.exports = MessageModel;
+exports.Message = mongoose_1.model('Message', exports.MessageSchema);

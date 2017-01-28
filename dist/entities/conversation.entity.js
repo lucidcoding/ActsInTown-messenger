@@ -1,9 +1,14 @@
-"use strict";
-var Conversation = (function () {
-    function Conversation() {
-    }
-    Conversation.start = function (request) {
-        var now = new Date();
+/*import StartConversationRequest = require('../requests/conversation/start.conversation.request')
+
+class Conversationy {
+    public _id: string;
+    public startedOn: Date;
+    public deleted: boolean;
+    public updatedOn: Date;
+    public usersToIds: string[];
+  
+    static start(request: StartConversationRequest): Conversationy {
+        let now = new Date();
         var conversation = new Conversation();
         conversation._id = 'test-id';
         conversation.startedOn = now;
@@ -11,7 +16,8 @@ var Conversation = (function () {
         conversation.updatedOn = now;
         conversation.usersToIds = request.usersToIds;
         return conversation;
-    };
-    return Conversation;
-}());
-module.exports = Conversation;
+    }
+}
+
+export = Conversationy;
+*/ 
