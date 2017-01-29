@@ -20,6 +20,7 @@
     "http": "0.0.0",
     "jsonwebtoken": "^7.2.1",
     "mongoose": "^4.7.8",
+    "node-uuid-generator": "^1.0.0",
     "passport": "^0.3.2",
     "path": "^0.12.7",
     "socket.io": "^1.7.2"

@@ -2,6 +2,7 @@ import { mongo, Types } from 'mongoose';
 import { Message } from '../models/message.model';
 import { Conversation } from '../models/conversation.model';
 import { StartConversationRequest } from '../requests/conversation/start.conversation.request';
+var uuid = require('node-uuid-generator');
 
 export function start(request: StartConversationRequest): Promise<any> {
     let now = new Date();
@@ -15,7 +16,7 @@ export function start(request: StartConversationRequest): Promise<any> {
     });
     
     let message = new Message({
-        _id: '28723601-4811-4CF1-97CD-B5FEEFCD0C36',
+        _id: uuid.generate(),
         conversation: request.id,
         userId: 'me',
         addedOn: now,

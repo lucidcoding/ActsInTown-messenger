@@ -1,6 +1,7 @@
 "use strict";
 var message_model_1 = require("../models/message.model");
 var conversation_model_1 = require("../models/conversation.model");
+var uuid = require('node-uuid-generator');
 function start(request) {
     var now = new Date();
     var conversation = new conversation_model_1.Conversation({
@@ -11,7 +12,7 @@ function start(request) {
         usersToIds: request.usersToIds
     });
     var message = new message_model_1.Message({
-        _id: '28723601-4811-4CF1-97CD-B5FEEFCD0C36',
+        _id: uuid.generate(),
         conversation: request.id,
         userId: 'me',
         addedOn: now,
