@@ -1,5 +1,5 @@
 import { mongo, Types } from 'mongoose';
-import { Message } from '../models/message.model';
+import { Message, IMessageModel } from '../models/message.model';
 import { IMessage } from '../interfaces/message.interface';
 import { Conversation } from '../models/conversation.model';
 import { PostMessageRequest } from '../requests/message/post.message.request';
@@ -19,6 +19,28 @@ export function getForConversation(conversationId: string): Promise<IMessage[]> 
     });
 }
 
+export function post(request: PostMessageRequest): Promise<any> {
+    let now = new Date();
+
+    let message: IMessageModel = new Message({
+        _id: uuid.generate(),
+        conversation: request.conversationId,
+        userId: request.userId,
+        addedOn: now,
+        deleted: false,
+        body: request.body
+    });
+
+    return new Promise((resolve: any, reject: any) => {  
+        message.save((err: any) => {
+            if (err) {
+                reject('Error creating message: ' + err);
+            } else {
+                resolve('Created');
+            }
+        });
+    });
+}
 /*export function start(request: StartConversationRequest): Promise<any> {
     let now = new Date();
 

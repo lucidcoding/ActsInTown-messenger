@@ -16,13 +16,12 @@ function post(req, res) {
         conversationId: req.body.conversationId,
         body: req.body.body
     };
-    res.status(201).json({ result: 'ok' });
-    /*messageService.post(request)
-        .then((result: string) => {
-            res.status(201).json({ result: result });
-        })
-        .catch((error: string) => {
-            res.status(500).json({ error: error });
-        });*/
+    messageService.post(request)
+        .then(function (result) {
+        res.status(201).json({ result: result });
+    })
+        .catch(function (error) {
+        res.status(500).json({ error: error });
+    });
 }
 exports.post = post;

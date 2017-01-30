@@ -1,5 +1,5 @@
 "use strict";
-//import bodyParser = require('body-parser');
+var bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 var passport = require("passport");
 var helmet = require("helmet");
@@ -15,9 +15,9 @@ var expressConfig = function (app) {
         preload: true
     }));
     app.use(helmet.noCache({ noEtag: true }));
-    //app.use(bodyParser({ limit: '50mb' }));
-    //app.use(bodyParser.urlencoded({ extended: false }));
-    //app.use(bodyParser.json());
+    app.use(bodyParser({ limit: '50mb' }));
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(bodyParser.json());
     app.use(cookieParser());
     app.use(passport.initialize());
     app.all('*', function (req, res, next) {

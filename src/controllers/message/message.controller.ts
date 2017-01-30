@@ -21,14 +21,12 @@ export function post(req: express.Request, res: express.Response) {
         conversationId: req.body.conversationId,
         body: req.body.body
     };
-    
-            res.status(201).json({ result: 'ok' });
             
-    /*messageService.post(request)
+    messageService.post(request)
         .then((result: string) => {
             res.status(201).json({ result: result });
         })
         .catch((error: string) => {
             res.status(500).json({ error: error });
-        });*/
+        });
 }

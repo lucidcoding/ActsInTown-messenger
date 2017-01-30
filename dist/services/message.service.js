@@ -16,6 +16,28 @@ function getForConversation(conversationId) {
     });
 }
 exports.getForConversation = getForConversation;
+function post(request) {
+    var now = new Date();
+    var message = new message_model_1.Message({
+        _id: uuid.generate(),
+        conversation: request.conversationId,
+        userId: request.userId,
+        addedOn: now,
+        deleted: false,
+        body: request.body
+    });
+    return new Promise(function (resolve, reject) {
+        message.save(function (err) {
+            if (err) {
+                reject('Error creating message: ' + err);
+            }
+            else {
+                resolve('Created');
+            }
+        });
+    });
+}
+exports.post = post;
 /*export function start(request: StartConversationRequest): Promise<any> {
     let now = new Date();
 

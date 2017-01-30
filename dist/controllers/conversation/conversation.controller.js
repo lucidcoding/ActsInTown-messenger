@@ -14,6 +14,7 @@ function start(req, res) {
     console.log('start');
     var request = {
         id: req.params.id,
+        userId: req.user.id,
         usersToIds: req.body.usersToIds,
         messageBody: req.body.messageBody
     };
