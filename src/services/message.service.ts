@@ -5,10 +5,13 @@ import { Conversation } from '../models/conversation.model';
 import { PostMessageRequest } from '../requests/message/post.message.request';
 var uuid = require('node-uuid-generator');
 
-export function getForConversation(conversationId: string): Promise<IMessage[]> {
+export function getForConversation(conversationId: string, page: number, pageSize: number): Promise<IMessage[]> {
     return new Promise((resolve: any, reject: any) => {
         Message
             .find({'conversation':conversationId})
+            .sort({addedOn: 'desc'})
+            .limit(pageSize)
+            .skip(pageSize * (page - 1))
             .exec((error: any, result: any) => {
                 if (error) {
                     reject('Error getting messages: ' + error);
@@ -36,7 +39,7 @@ export function post(request: PostMessageRequest): Promise<any> {
             if (err) {
                 reject('Error creating message: ' + err);
             } else {
-                resolve('Created');
+                resolve(<IMessage>message);
             }
         });
     });

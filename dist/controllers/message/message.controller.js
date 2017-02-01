@@ -1,7 +1,7 @@
 "use strict";
 var messageService = require("../../services/message.service");
 function getForConversation(req, res) {
-    messageService.getForConversation(req.params.conversationId)
+    messageService.getForConversation(req.params.conversationId, req.params.page, req.params.pageSize)
         .then(function (result) {
         res.status(200).json(result);
     })
@@ -18,7 +18,7 @@ function post(req, res) {
     };
     messageService.post(request)
         .then(function (result) {
-        res.status(201).json({ result: result });
+        res.status(201).json(result);
     })
         .catch(function (error) {
         res.status(500).json({ error: error });

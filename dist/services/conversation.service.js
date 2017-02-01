@@ -11,7 +11,7 @@ function start(request) {
         startedOn: now,
         deleted: false,
         updatedOn: now,
-        usersIds: userIds
+        userIds: userIds
     });
     var message = new message_model_1.Message({
         _id: uuid.generate(),

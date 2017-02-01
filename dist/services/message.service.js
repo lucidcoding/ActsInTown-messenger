@@ -1,10 +1,13 @@
 "use strict";
 var message_model_1 = require("../models/message.model");
 var uuid = require('node-uuid-generator');
-function getForConversation(conversationId) {
+function getForConversation(conversationId, page, pageSize) {
     return new Promise(function (resolve, reject) {
         message_model_1.Message
             .find({ 'conversation': conversationId })
+            .sort({ addedOn: 'desc' })
+            .limit(pageSize)
+            .skip(pageSize * (page - 1))
             .exec(function (error, result) {
             if (error) {
                 reject('Error getting messages: ' + error);
@@ -32,7 +35,7 @@ function post(request) {
                 reject('Error creating message: ' + err);
             }
             else {
-                resolve('Created');
+                resolve(message);
             }
         });
     });

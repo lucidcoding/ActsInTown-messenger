@@ -15,7 +15,7 @@ export function start(request: StartConversationRequest): Promise<any> {
         startedOn: now,
         deleted: false,
         updatedOn: now,
-        usersIds: userIds    
+        userIds: userIds    
     });
     
     let message = new Message({

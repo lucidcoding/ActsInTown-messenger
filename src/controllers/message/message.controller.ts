@@ -6,7 +6,7 @@ import { IMessage } from '../../interfaces/message.interface';
 import messageService = require('../../services/message.service');
 
 export function getForConversation(req: express.Request, res: express.Response) {
-    messageService.getForConversation(req.params.conversationId)
+    messageService.getForConversation(req.params.conversationId, req.params.page, req.params.pageSize)
         .then((result: IMessage[]) => {
             res.status(200).json(result);
         })
@@ -24,7 +24,7 @@ export function post(req: express.Request, res: express.Response) {
             
     messageService.post(request)
         .then((result: string) => {
-            res.status(201).json({ result: result });
+            res.status(201).json(result);
         })
         .catch((error: string) => {
             res.status(500).json({ error: error });
