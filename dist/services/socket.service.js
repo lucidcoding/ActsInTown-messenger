@@ -8,6 +8,8 @@ var jwt = require("jsonwebtoken");
 /*var config = require('config');
 var redis = require('redis').createClient;
 var adapter = require('socket.io-redis');*/
+var socket_connection_model_1 = require("../models/socket-connection.model");
+var uuid = require('node-uuid-generator');
 var socketIo;
 /**
  * Bind socket.io to the express server
@@ -30,9 +32,9 @@ function listen(app) {
         secret: 'my-trusted-client:',//config.get('secret'),
         handshake: true
     }));*/
-    /*setInterval(function() {
+    setInterval(function () {
         socketIo.emit('heartbeat', 1);
-    }, 5000);*/
+    }, 5000);
     socketIo.on("error", function (error) {
         console.log('Error: ' + error);
     });
@@ -59,9 +61,25 @@ function listen(app) {
         }
     });
     socketIo.on('connection', function (socket) {
-        console.log('connected...');
+        console.log('Connected on socket: ' + socket.id);
         jwt.verify(socket.handshake.query.token, 'hd6620asj#d9/dw', function (err, decoded) {
             console.log('token: ' + JSON.stringify(decoded));
+            var userId = decoded.id;
+            var socketConnection = new socket_connection_model_1.SocketConnection({
+                _id: uuid.generate(),
+                userId: userId,
+                socketId: socket.id,
+                addedOn: new Date(),
+                deleted: false
+            });
+            socketConnection.save(function (err) {
+                if (err) {
+                    console.log('Error saving socket: ' + err);
+                }
+                else {
+                    console.log('Socket connection saved');
+                }
+            });
         });
     });
     socketIo.on('disconnect', function () {
@@ -69,3 +87,21 @@ function listen(app) {
     });
 }
 exports.listen = listen;
+function broadcastTo(userId, event, data) {
+    return new Promise(function (resolve, reject) {
+        socketIo.emit(event, data);
+        resolve();
+        socket_connection_model_1.SocketConnection
+            .findOne({ 'userId': userId })
+            .exec(function (error, result) {
+            if (error) {
+                reject('Error getting user: ' + error);
+            }
+            else {
+                socketIo.to(result.socketId).emit(event, data);
+                resolve();
+            }
+        });
+    });
+}
+exports.broadcastTo = broadcastTo;

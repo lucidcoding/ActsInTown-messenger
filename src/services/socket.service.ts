@@ -7,6 +7,8 @@ import jwt = require('jsonwebtoken');
 /*var config = require('config');
 var redis = require('redis').createClient;
 var adapter = require('socket.io-redis');*/
+import { SocketConnection } from '../models/socket-connection.model';
+var uuid = require('node-uuid-generator');
 
 var socketIo: any;
 
@@ -34,15 +36,15 @@ export function listen(app: Object): void {
         console.log('hello! ' + socket.decoded_token.name);
     });
   */
-  
+
 	/*socketIo.use(socketioJwt.authorize({
 		secret: 'my-trusted-client:',//config.get('secret'),
 		handshake: true
 	}));*/
 
-	/*setInterval(function() {
+	setInterval(function() {
 		socketIo.emit('heartbeat', 1);
-	}, 5000);*/
+	}, 5000);
 
     socketIo.on("error", (error: any) => {
         console.log('Error: ' + error);
@@ -66,22 +68,57 @@ export function listen(app: Object): void {
                     callback(null, true);
                 }
             });
-        } else { 
+        } else {
             console.log('Connection error: no token');
             callback('No token', false);
         }
     });
 
     socketIo.on('connection', (socket: any) => {
-        console.log('connected...');
+        console.log('Connected on socket: ' + socket.id);
 
         jwt.verify(socket.handshake.query.token, 'hd6620asj#d9/dw', (err: any, decoded: any) => {
             console.log('token: ' + JSON.stringify(decoded));
+            let userId = decoded.id;
+
+            let socketConnection = new SocketConnection({
+                _id: uuid.generate(),
+                userId: userId,
+                socketId: socket.id,
+                addedOn: new Date(),
+                deleted: false
+            });
+
+            socketConnection.save((err: any) => {
+                if (err) {
+                    console.log('Error saving socket: ' + err);
+                } else {
+                    console.log('Socket connection saved');
+                }
+            });
         });
     });
 
-    socketIo.on('disconnect', function() {
-
+    socketIo.on('disconnect', () => {
         console.log('A user disconnected');
+    });
+}
+
+export function broadcastTo(userId: string, event: string, data?: Object): Promise<any> {
+    return new Promise((resolve: any, reject: any) => {
+        
+		socketIo.emit(event, data);
+
+        resolve();
+        SocketConnection
+            .findOne({ 'userId': userId })
+            .exec((error: any, result: any) => {
+                if (error) {
+                    reject('Error getting user: ' + error);
+                } else {
+                    socketIo.to(result.socketId).emit(event, data);
+                    resolve();
+                }
+            });
     });
 }
