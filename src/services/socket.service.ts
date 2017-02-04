@@ -8,6 +8,7 @@ import jwt = require('jsonwebtoken');
 var redis = require('redis').createClient;
 var adapter = require('socket.io-redis');*/
 import { SocketConnection } from '../models/socket-connection.model';
+import { ISocketConnection } from '../interfaces/socket-connection.interface';
 var uuid = require('node-uuid-generator');
 
 var socketIo: any;
@@ -107,16 +108,20 @@ export function listen(app: Object): void {
 export function broadcastTo(userId: string, event: string, data?: Object): Promise<any> {
     return new Promise((resolve: any, reject: any) => {
         
-		socketIo.emit(event, data);
+		//socketIo.emit(event, data);
 
-        resolve();
+        //resolve();
         SocketConnection
-            .findOne({ 'userId': userId })
-            .exec((error: any, result: any) => {
+            .find({ 'userId': userId })
+            .sort({ addedOn: 'desc' })
+            .limit(1)
+            .exec((error: any, result: ISocketConnection[]) => {
                 if (error) {
                     reject('Error getting user: ' + error);
                 } else {
-                    socketIo.to(result.socketId).emit(event, data);
+                    let socketConnection: ISocketConnection = result[0];
+                    let socketId = socketConnection.socketId;
+                    socketIo.to(socketId).emit(event, data);
                     resolve();
                 }
             });

@@ -89,16 +89,20 @@ function listen(app) {
 exports.listen = listen;
 function broadcastTo(userId, event, data) {
     return new Promise(function (resolve, reject) {
-        socketIo.emit(event, data);
-        resolve();
+        //socketIo.emit(event, data);
+        //resolve();
         socket_connection_model_1.SocketConnection
-            .findOne({ 'userId': userId })
+            .find({ 'userId': userId })
+            .sort({ addedOn: 'desc' })
+            .limit(1)
             .exec(function (error, result) {
             if (error) {
                 reject('Error getting user: ' + error);
             }
             else {
-                socketIo.to(result.socketId).emit(event, data);
+                var socketConnection = result[0];
+                var socketId = socketConnection.socketId;
+                socketIo.to(socketId).emit(event, data);
                 resolve();
             }
         });
