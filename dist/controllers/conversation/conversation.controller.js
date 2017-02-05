@@ -1,17 +1,20 @@
 "use strict";
-var message_model_1 = require("../../models/message.model");
 var conversationService = require("../../services/conversation.service");
 function test(req, res) {
-    var message = message_model_1.Message
-        .findOne({ '_id': '28723601-4811-4CF1-97CD-B5FEEFCD0C36' })
-        .populate('conversation')
-        .exec(function (error, result) {
-        res.status(200).json(message);
-    });
+    res.status(200).json({ status: 'OK' });
 }
 exports.test = test;
+function getForCurrentUser(req, res) {
+    conversationService.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
+        .then(function (result) {
+        res.status(200).json(result);
+    })
+        .catch(function (error) {
+        res.status(500).json({ error: error });
+    });
+}
+exports.getForCurrentUser = getForCurrentUser;
 function start(req, res) {
-    console.log('start');
     var request = {
         id: req.params.id,
         userId: req.user.id,

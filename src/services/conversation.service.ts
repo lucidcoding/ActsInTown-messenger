@@ -4,6 +4,23 @@ import { Conversation, IConversationModel } from '../models/conversation.model';
 import { StartConversationRequest } from '../requests/conversation/start.conversation.request';
 var uuid = require('node-uuid-generator');
 
+export function getForCurrentUser(currentUserId: string, page: number, pageSize: number) {
+    return new Promise((resolve: any, reject: any) => {
+        Conversation
+            .find({ 'userIds': currentUserId })
+            .sort({ updatedOn: 'desc' })
+            .limit(pageSize)
+            .skip(pageSize * (page - 1))
+            .exec((error: any, result: any) => {
+                if (error) {
+                    reject('Error getting conversations: ' + error);
+                } else {
+                    resolve(result);
+                }
+            });
+    });
+}
+
 export function start(request: StartConversationRequest): Promise<any> {
     let now = new Date();
 

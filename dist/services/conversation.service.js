@@ -2,6 +2,24 @@
 var message_model_1 = require("../models/message.model");
 var conversation_model_1 = require("../models/conversation.model");
 var uuid = require('node-uuid-generator');
+function getForCurrentUser(currentUserId, page, pageSize) {
+    return new Promise(function (resolve, reject) {
+        conversation_model_1.Conversation
+            .find({ 'userIds': currentUserId })
+            .sort({ updatedOn: 'desc' })
+            .limit(pageSize)
+            .skip(pageSize * (page - 1))
+            .exec(function (error, result) {
+            if (error) {
+                reject('Error getting conversations: ' + error);
+            }
+            else {
+                resolve(result);
+            }
+        });
+    });
+}
+exports.getForCurrentUser = getForCurrentUser;
 function start(request) {
     var now = new Date();
     var userIds = request.usersToIds;
