@@ -1,9 +1,12 @@
-import { mongo, Types } from 'mongoose';
-import { Message, IMessageModel } from '../models/message.model';
+//import { mongo, Types } from 'mongoose';
+//import { Message, IMessageModel } from '../models/message.model';
 import { IMessage } from '../interfaces/message.interface';
-import { Conversation } from '../models/conversation.model';
+import { IConversation } from '../interfaces/conversation.interface';
+//import { Conversation } from '../models/conversation.model';
 import { PostMessageRequest } from '../requests/message/post.message.request';
 import { broadcastTo } from './socket.service';
+import conversationRepository = require('../repositories/conversation.repository');
+import messageRepository = require('../repositories/message.repository');
 var uuid = require('node-uuid-generator');
 
 Array.prototype.where = function (expression: Function) {
@@ -20,27 +23,10 @@ Array.prototype.where = function (expression: Function) {
 	return matchingElements;
 };
 
-export function getForConversation(conversationId: string, page: number, pageSize: number): Promise<IMessage[]> {
-    return new Promise((resolve: any, reject: any) => {
-        Message
-            .find({ 'conversation': conversationId })
-            .sort({ addedOn: 'desc' })
-            .limit(pageSize)
-            .skip(pageSize * (page - 1))
-            .exec((error: any, result: any) => {
-                if (error) {
-                    reject('Error getting messages: ' + error);
-                } else {
-                    resolve(result);
-                }
-            });
-    });
-}
-
 export function post(request: PostMessageRequest): Promise<any> {
     let now = new Date();
 
-    let messageEntity: IMessage = {
+    let message: IMessage = {
         _id: uuid.generate(),
         conversation: request.conversationId,
         userId: request.userId,
@@ -49,44 +35,39 @@ export function post(request: PostMessageRequest): Promise<any> {
         body: request.body
     };
 
-    let message: IMessageModel = new Message(messageEntity);
-
     return new Promise((resolve: any, reject: any) => {
-        message.save((err: any) => {
-            if (err) {
-                reject('Error creating message: ' + err);
-            } else {
-                //Send to other user.
-                pushToOtherUsers(messageEntity)
+        messageRepository.save(message)
+            .then((result: IMessage) => {
+                pushToOtherUsers(result)
                     .then(() => {
-                        resolve(<IMessage>message);
+                        resolve(result);
                     })
                     .catch((error: string) => {
                         reject('Error pushing to other users: ' + error);
                     });
-            }
-        });
+            })
+            .catch((error: string) => {
+                reject(error);
+            });
     });
 }
 
 function pushToOtherUsers(message: IMessage): Promise<any> {
     return new Promise((resolve: any, reject: any) => {
-        Conversation
-            .findOne({ '_id': message.conversation })
-            .exec((error: any, conversation: any) => {
-                if (error) {
-                    reject('Error getting conversation: ' + error);
-                } else {
-                    var otherUserIds = conversation.userIds.where((item: string) => {
-                        return item.toLowerCase() !== message.userId.toLowerCase();
-                    });
+        conversationRepository.getById(<string>(message.conversation))
+            .then((conversation: IConversation) => {
+                var otherUserIds = conversation.userIds.where((item: string) => {
+                    return item.toLowerCase() !== message.userId.toLowerCase();
+                });
 
-                    for (let userId of otherUserIds) {
-                        broadcastTo(userId, 'MessageAdded', message);
-                    }
-
-                    resolve();
+                for (let userId of otherUserIds) {
+                    broadcastTo(userId, 'MessageAdded', message);
                 }
+
+                resolve();
+            })
+            .catch((error: string) => {
+                reject(error);
             });
     });
 }

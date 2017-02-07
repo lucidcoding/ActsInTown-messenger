@@ -1,25 +1,11 @@
-import { mongo, Types } from 'mongoose';
-import { Message } from '../models/message.model';
-import { Conversation, IConversationModel } from '../models/conversation.model';
+// import { Message } from '../models/message.model';
+// import { Conversation, IConversationModel } from '../models/conversation.model';
+import { IConversation } from '../interfaces/conversation.interface';
+import { IMessage } from '../interfaces/message.interface';
 import { StartConversationRequest } from '../requests/conversation/start.conversation.request';
+import conversationRepository = require('../repositories/conversation.repository');
+import messageRepository = require('../repositories/message.repository');
 var uuid = require('node-uuid-generator');
-
-export function getForCurrentUser(currentUserId: string, page: number, pageSize: number) {
-    return new Promise((resolve: any, reject: any) => {
-        Conversation
-            .find({ 'userIds': currentUserId })
-            .sort({ updatedOn: 'desc' })
-            .limit(pageSize)
-            .skip(pageSize * (page - 1))
-            .exec((error: any, result: any) => {
-                if (error) {
-                    reject('Error getting conversations: ' + error);
-                } else {
-                    resolve(result);
-                }
-            });
-    });
-}
 
 export function start(request: StartConversationRequest): Promise<any> {
     let now = new Date();
@@ -27,36 +13,36 @@ export function start(request: StartConversationRequest): Promise<any> {
     let userIds = request.usersToIds;
     userIds.push(request.userId);
 
-    let conversation: IConversationModel = new Conversation({
+    let conversation: IConversation = {
         _id: request.id,
         startedOn: now,
         deleted: false,
         updatedOn: now,
         userIds: userIds    
-    });
+    };
     
-    let message = new Message({
+    let message: IMessage = {
         _id: uuid.generate(),
         conversation: request.id,
         userId: request.userId,
         addedOn: now,
         deleted: false,
         body: request.messageBody
-    });
+    };
     
-    return new Promise((resolve: any, reject: any) => {    
-        conversation.save((err: any) => {
-            if (err) {
-                reject('Error creating conversation: ' + err);
-            } else {
-                message.save((err: any) => {
-                    if (err) {
-                        reject('Error creating message: ' + err);
-                    } else {
-                        resolve('Created');
-                    }
-                });
-            }
-        });
+    return new Promise((resolve: any, reject: any) => { 
+        conversationRepository.save(conversation)
+            .then((result: IConversation) => {
+                messageRepository.save(message)
+                    .then((result: IMessage) => {
+                        resolve(result);
+                    })
+                    .catch((error: string) => {
+                        reject(error);
+                    });
+            })
+            .catch((error: string) => {
+                reject(error);
+            });
     });
 }

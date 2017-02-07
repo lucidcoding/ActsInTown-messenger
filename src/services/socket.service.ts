@@ -7,8 +7,9 @@ import jwt = require('jsonwebtoken');
 /*var config = require('config');
 var redis = require('redis').createClient;
 var adapter = require('socket.io-redis');*/
-import { SocketConnection } from '../models/socket-connection.model';
+//import { SocketConnection } from '../models/socket-connection.model';
 import { ISocketConnection } from '../interfaces/socket-connection.interface';
+import socketConnectionRepository = require('../repositories/socket-connection.repository');
 var uuid = require('node-uuid-generator');
 
 var socketIo: any;
@@ -82,21 +83,21 @@ export function listen(app: Object): void {
             console.log('token: ' + JSON.stringify(decoded));
             let userId = decoded.id;
 
-            let socketConnection = new SocketConnection({
+            let socketConnection: ISocketConnection = {
                 _id: uuid.generate(),
                 userId: userId,
                 socketId: socket.id,
                 addedOn: new Date(),
                 deleted: false
-            });
+            };
 
-            socketConnection.save((err: any) => {
-                if (err) {
-                    console.log('Error saving socket: ' + err);
-                } else {
+            socketConnectionRepository.save(socketConnection)
+                .then((result: ISocketConnection) => {
                     console.log('Socket connection saved');
-                }
-            });
+                })
+                .catch((error: string) => {
+                    console.log('Error saving socket: ' + err);
+                });
         });
     });
 
@@ -107,11 +108,20 @@ export function listen(app: Object): void {
 
 export function broadcastTo(userId: string, event: string, data?: Object): Promise<any> {
     return new Promise((resolve: any, reject: any) => {
-        
+        socketConnectionRepository.getLatestByUserId(userId)
+            .then((socketConnection: ISocketConnection) => {
+                let socketId = socketConnection.socketId;
+                socketIo.to(socketId).emit(event, data);
+                resolve();
+            })
+            .catch((error: string) => {
+                reject('Error getting socket: ' + error);
+            });
+    });
 		//socketIo.emit(event, data);
 
         //resolve();
-        SocketConnection
+        /* SocketConnection
             .find({ 'userId': userId })
             .sort({ addedOn: 'desc' })
             .limit(1)
@@ -124,6 +134,5 @@ export function broadcastTo(userId: string, event: string, data?: Object): Promi
                     socketIo.to(socketId).emit(event, data);
                     resolve();
                 }
-            });
-    });
+            });*/
 }

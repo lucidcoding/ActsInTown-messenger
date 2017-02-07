@@ -5,10 +5,7 @@ var io = require("socket.io");
 //var DB = require('@scadmin/tribo-db');
 //var socketioJwt = require('socketio-jwt');
 var jwt = require("jsonwebtoken");
-/*var config = require('config');
-var redis = require('redis').createClient;
-var adapter = require('socket.io-redis');*/
-var socket_connection_model_1 = require("../models/socket-connection.model");
+var socketConnectionRepository = require("../repositories/socket-connection.repository");
 var uuid = require('node-uuid-generator');
 var socketIo;
 /**
@@ -65,20 +62,19 @@ function listen(app) {
         jwt.verify(socket.handshake.query.token, 'hd6620asj#d9/dw', function (err, decoded) {
             console.log('token: ' + JSON.stringify(decoded));
             var userId = decoded.id;
-            var socketConnection = new socket_connection_model_1.SocketConnection({
+            var socketConnection = {
                 _id: uuid.generate(),
                 userId: userId,
                 socketId: socket.id,
                 addedOn: new Date(),
                 deleted: false
-            });
-            socketConnection.save(function (err) {
-                if (err) {
-                    console.log('Error saving socket: ' + err);
-                }
-                else {
-                    console.log('Socket connection saved');
-                }
+            };
+            socketConnectionRepository.save(socketConnection)
+                .then(function (result) {
+                console.log('Socket connection saved');
+            })
+                .catch(function (error) {
+                console.log('Error saving socket: ' + err);
             });
         });
     });
@@ -89,23 +85,31 @@ function listen(app) {
 exports.listen = listen;
 function broadcastTo(userId, event, data) {
     return new Promise(function (resolve, reject) {
-        //socketIo.emit(event, data);
-        //resolve();
-        socket_connection_model_1.SocketConnection
-            .find({ 'userId': userId })
-            .sort({ addedOn: 'desc' })
-            .limit(1)
-            .exec(function (error, result) {
+        socketConnectionRepository.getLatestByUserId(userId)
+            .then(function (socketConnection) {
+            var socketId = socketConnection.socketId;
+            socketIo.to(socketId).emit(event, data);
+            resolve();
+        })
+            .catch(function (error) {
+            reject('Error getting socket: ' + error);
+        });
+    });
+    //socketIo.emit(event, data);
+    //resolve();
+    /* SocketConnection
+        .find({ 'userId': userId })
+        .sort({ addedOn: 'desc' })
+        .limit(1)
+        .exec((error: any, result: ISocketConnection[]) => {
             if (error) {
                 reject('Error getting user: ' + error);
-            }
-            else {
-                var socketConnection = result[0];
-                var socketId = socketConnection.socketId;
+            } else {
+                let socketConnection: ISocketConnection = result[0];
+                let socketId = socketConnection.socketId;
                 socketIo.to(socketId).emit(event, data);
                 resolve();
             }
-        });
-    });
+        });*/
 }
 exports.broadcastTo = broadcastTo;

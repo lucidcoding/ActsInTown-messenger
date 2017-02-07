@@ -1,11 +1,8 @@
 "use strict";
 var conversationService = require("../../services/conversation.service");
-function test(req, res) {
-    res.status(200).json({ status: 'OK' });
-}
-exports.test = test;
+var conversationRepository = require("../../repositories/conversation.repository");
 function getForCurrentUser(req, res) {
-    conversationService.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
+    conversationRepository.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
         .then(function (result) {
         res.status(200).json(result);
     })

@@ -1,7 +1,8 @@
 "use strict";
 var messageService = require("../../services/message.service");
+var messageRepository = require("../../repositories/message.repository");
 function getForConversation(req, res) {
-    messageService.getForConversation(req.params.conversationId, req.params.page, req.params.pageSize)
+    messageRepository.getForConversation(req.params.conversationId, req.params.page, req.params.pageSize)
         .then(function (result) {
         res.status(200).json(result);
     })

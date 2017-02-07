@@ -3,5 +3,5 @@ export interface IConversation {
     startedOn: Date;
     deleted: boolean;
     updatedOn: Date;
-    usersIds: string[];
+    userIds: string[];
 }

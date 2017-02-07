@@ -5,13 +5,10 @@ import { Message } from '../../models/message.model';
 import { Conversation } from '../../models/conversation.model';
 import { IConversation } from '../../interfaces/conversation.interface';
 import conversationService = require('../../services/conversation.service');
-
-export function test(req: express.Request, res: express.Response) {
-    res.status(200).json({status: 'OK'});
-}
+import conversationRepository = require('../../repositories/conversation.repository');
 
 export function getForCurrentUser(req: express.Request, res: express.Response) {
-   conversationService.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
+   conversationRepository.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
         .then((result: IConversation[]) => {
             res.status(200).json(result);
         })

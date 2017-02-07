@@ -4,9 +4,10 @@ import { PostMessageRequest } from '../../requests/message/post.message.request'
 import { Message } from '../../models/message.model';
 import { IMessage } from '../../interfaces/message.interface';
 import messageService = require('../../services/message.service');
+import messageRepository = require('../../repositories/message.repository');
 
 export function getForConversation(req: express.Request, res: express.Response) {
-    messageService.getForConversation(req.params.conversationId, req.params.page, req.params.pageSize)
+    messageRepository.getForConversation(req.params.conversationId, req.params.page, req.params.pageSize)
         .then((result: IMessage[]) => {
             res.status(200).json(result);
         })
