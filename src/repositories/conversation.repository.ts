@@ -18,6 +18,30 @@ export function getForCurrentUser(currentUserId: string, page: number, pageSize:
     });
 }
 
+export function getForUserIds(userIds: string[]): Promise<IConversation> {
+    return new Promise((resolve: any, reject: any) => {
+        Conversation
+            .find()
+            .and([
+                { 'userIds': userIds[0] },
+                { 'userIds': userIds[1] }
+            ])
+            .sort({ updatedOn: 'desc' })
+            .limit(1)
+            .exec((error: any, result: any) => {
+                if (error) {
+                    reject('Error getting conversation: ' + error);
+                } else {
+                    if(result.length > 0) {
+                        resolve(result[0]);
+                    } else {
+                        resolve(null);
+                    }
+                }
+            });
+    });
+}
+
 export function getById(conversationId: string): Promise<IConversation> {
     return new Promise((resolve: any, reject: any) => {
         Conversation

@@ -27,12 +27,14 @@ function getForCurrentUserAndUser(req, res) {
 exports.getForCurrentUserAndUser = getForCurrentUserAndUser;
 function start(req, res) {
     var request = {
+        id: req.params.id,
         userId: req.user.id,
-        usersToIds: req.body.usersToIds
+        usersToIds: req.body.usersToIds,
+        messageBody: req.body.messageBody
     };
     conversationService.start(request)
         .then(function (result) {
-        res.status(201).json(result);
+        res.status(201).json({ result: result });
     })
         .catch(function (error) {
         res.status(500).json({ error: error });

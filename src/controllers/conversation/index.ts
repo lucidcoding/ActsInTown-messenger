@@ -5,6 +5,7 @@ import authenticationService = require('../../services/authentication.service');
 var routes = express.Router();
 
 routes.get('/for-current-user/:page/:pageSize', authenticationService.isAuthenticated(), conversationController.getForCurrentUser);
-routes.post('/:id', authenticationService.isAuthenticated(), conversationController.start);
+routes.get('/for-current-user-and-user/:userId', authenticationService.isAuthenticated(), conversationController.getForCurrentUserAndUser);
+routes.post('', authenticationService.isAuthenticated(), conversationController.start);
 
 export = routes;

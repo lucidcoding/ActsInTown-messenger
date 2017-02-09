@@ -14,32 +14,33 @@ export function start(request: StartConversationRequest): Promise<any> {
     userIds.push(request.userId);
 
     let conversation: IConversation = {
-        _id: request.id,
+        _id: uuid.generate(),
         startedOn: now,
         deleted: false,
         updatedOn: now,
         userIds: userIds    
     };
     
-    let message: IMessage = {
+    /*let message: IMessage = {
         _id: uuid.generate(),
         conversation: request.id,
         userId: request.userId,
         addedOn: now,
         deleted: false,
         body: request.messageBody
-    };
+    };*/
     
     return new Promise((resolve: any, reject: any) => { 
         conversationRepository.save(conversation)
             .then((result: IConversation) => {
-                messageRepository.save(message)
+                resolve(result);
+                /*messageRepository.save(message)
                     .then((result: IMessage) => {
                         resolve(result);
                     })
                     .catch((error: string) => {
                         reject(error);
-                    });
+                    });*/
             })
             .catch((error: string) => {
                 reject(error);
