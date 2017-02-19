@@ -14,42 +14,65 @@ Array.prototype.where = function (expression) {
     return matchingElements;
 };
 function post(request) {
-    var now = new Date();
-    var message = {
-        _id: uuid.generate(),
-        conversation: request.conversationId,
-        userId: request.userId,
-        addedOn: now,
-        deleted: false,
-        body: request.body
-    };
     return new Promise(function (resolve, reject) {
-        messageRepository.save(message)
-            .then(function (result) {
-            pushToOtherUsers(result)
-                .then(function () {
-                resolve(result);
+        conversationRepository.get(request.conversationId)
+            .then(function (conversation) {
+            var now = new Date();
+            conversation.updatedOn = now;
+            for (var _i = 0, _a = conversation.users; _i < _a.length; _i++) {
+                var user = _a[_i];
+                if (user.userId.toLowerCase() === request.userId.toLowerCase()) {
+                    user.read = true;
+                }
+                else {
+                    user.read = false;
+                }
+            }
+            conversationRepository.save(conversation)
+                .then(function (conversation) {
+                var message = {
+                    _id: uuid.generate(),
+                    conversation: request.conversationId,
+                    userId: request.userId,
+                    addedOn: now,
+                    deleted: false,
+                    body: request.body
+                };
+                messageRepository.save(message)
+                    .then(function (result) {
+                    pushToOtherUsers(result)
+                        .then(function () {
+                        resolve(result);
+                    })
+                        .catch(function (error) {
+                        reject('Error pushing to other users: ' + error);
+                    });
+                })
+                    .catch(function (error) {
+                    reject('Error saving message: ' + error);
+                });
             })
                 .catch(function (error) {
-                reject('Error pushing to other users: ' + error);
+                reject('Error saving conversation: ' + error);
             });
         })
             .catch(function (error) {
-            reject(error);
+            reject('Error getting conversation: ' + error);
         });
     });
 }
 exports.post = post;
 function pushToOtherUsers(message) {
     return new Promise(function (resolve, reject) {
-        conversationRepository.getById((message.conversation))
+        conversationRepository.get((message.conversation))
             .then(function (conversation) {
-            var otherUserIds = conversation.userIds.where(function (item) {
-                return item.toLowerCase() !== message.userId.toLowerCase();
+            var otherUsers = conversation.users.where(function (user) {
+                return user.userId.toLowerCase() !== message.userId.toLowerCase();
             });
-            for (var _i = 0, otherUserIds_1 = otherUserIds; _i < otherUserIds_1.length; _i++) {
-                var userId = otherUserIds_1[_i];
-                socket_service_1.broadcastTo(userId, 'MessageAdded', message);
+            for (var _i = 0, otherUsers_1 = otherUsers; _i < otherUsers_1.length; _i++) {
+                var user = otherUsers_1[_i];
+                socket_service_1.broadcastTo(user.userId, 'MessageAdded', message);
+                socket_service_1.broadcastTo(user.userId, 'UnreadMessages', message);
             }
             resolve();
         })

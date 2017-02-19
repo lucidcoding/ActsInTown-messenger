@@ -1,10 +1,24 @@
 import { Conversation, IConversationModel } from '../models/conversation.model';
 import { IConversation } from '../interfaces/conversation.interface';
 
+export function get(conversationId: string): Promise<IConversation> {
+    return new Promise((resolve: any, reject: any) => {
+        Conversation
+            .findOne({ '_id': conversationId })
+            .exec((error: any, conversation: any) => {
+                if (error) {
+                    reject('Error getting conversation: ' + error);
+                } else {
+                    resolve(conversation);
+                }
+            });
+    });
+}
+
 export function getForCurrentUser(currentUserId: string, page: number, pageSize: number): Promise<IConversation[]> {
     return new Promise((resolve: any, reject: any) => {
         Conversation
-            .find({ 'userIds': currentUserId })
+            .find({ 'users.userId': currentUserId })
             .sort({ updatedOn: 'desc' })
             .limit(pageSize)
             .skip(pageSize * (page - 1))
@@ -23,8 +37,8 @@ export function getForUserIds(userIds: string[]): Promise<IConversation> {
         Conversation
             .find()
             .and([
-                { 'userIds': userIds[0] },
-                { 'userIds': userIds[1] }
+                { 'users.userId': userIds[0] },
+                { 'users.userId': userIds[1] }
             ])
             .sort({ updatedOn: 'desc' })
             .limit(1)
@@ -42,19 +56,27 @@ export function getForUserIds(userIds: string[]): Promise<IConversation> {
     });
 }
 
-export function getById(conversationId: string): Promise<IConversation> {
+export function getUnreadForUser(userId: string): Promise<IConversation[]> {
     return new Promise((resolve: any, reject: any) => {
         Conversation
-            .findOne({ '_id': conversationId })
-            .exec((error: any, conversation: any) => {
+            .find({
+                users: {
+                    $elemMatch: {
+                        $and: [
+                            { userId: userId}, 
+                            { read: false }
+                    ]}
+                }
+            })
+            .exec((error: any, result: IConversation[]) => {
                 if (error) {
-                    reject('Error getting conversation: ' + error);
+                    reject('Error getting conversations: ' + error);
                 } else {
-                    resolve(conversation);
+                    resolve(result);
                 }
             });
     });
-}
+};
 
 export function save(conversation: IConversation): Promise<IConversation> {
     let conversationModel: IConversationModel = new Conversation(conversation);

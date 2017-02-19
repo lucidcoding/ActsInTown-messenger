@@ -24,7 +24,7 @@ export function post(req: express.Request, res: express.Response) {
     };
             
     messageService.post(request)
-        .then((result: string) => {
+        .then((result: IMessage) => {
             res.status(201).json(result);
         })
         .catch((error: string) => {

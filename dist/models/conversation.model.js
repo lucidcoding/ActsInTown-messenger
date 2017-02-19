@@ -13,6 +13,13 @@ exports.ConversationSchema = new mongoose_1.Schema({
     updatedOn: {
         type: Date
     },
-    userIds: [String]
+    users: [{
+            userId: {
+                type: String
+            },
+            read: {
+                type: Boolean
+            }
+        }]
 });
 exports.Conversation = mongoose_1.model('Conversation', exports.ConversationSchema);

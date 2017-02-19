@@ -7,6 +7,16 @@ import { IConversation } from '../../interfaces/conversation.interface';
 import conversationService = require('../../services/conversation.service');
 import conversationRepository = require('../../repositories/conversation.repository');
 
+export function get(req: express.Request, res: express.Response) {
+    conversationService.get(req.params.id, req.user.id)
+        .then((result: IConversation) => {
+            res.status(200).json(result);
+        })
+        .catch((error: string) => {
+            res.status(500).json({ error: error });
+        });
+}
+
 export function getForCurrentUser(req: express.Request, res: express.Response) {
    conversationRepository.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
         .then((result: IConversation[]) => {

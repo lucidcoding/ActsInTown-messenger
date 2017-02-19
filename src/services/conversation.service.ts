@@ -6,6 +6,32 @@ import { StartConversationRequest } from '../requests/conversation/start.convers
 import conversationRepository = require('../repositories/conversation.repository');
 import messageRepository = require('../repositories/message.repository');
 var uuid = require('node-uuid-generator');
+import { broadcastTo } from './socket.service';
+
+export function get(conversationId: string, userId: string): Promise<IConversation> {
+    return new Promise((resolve: any, reject: any) => { 
+        conversationRepository.get(conversationId)
+            .then((conversation: IConversation) => {
+                let conversationUser: any = conversation.users.find((user: any) => {
+                    return user.userId.toLowerCase() === userId.toLowerCase();
+                });
+
+                conversationUser.read = true;
+        
+                conversationRepository.save(conversation)
+                    .then((conversation: IConversation) => {
+                        resolve(conversation);
+                        checkAllReadForUser(userId);
+                    })
+                    .catch((error: string) => {
+                        reject('Error marking conversation as unread: ' + error);
+                    });
+            })
+            .catch((error: string) => {
+                reject('Error getting conversation: ' + error);
+            });
+    });
+}
 
 export function start(request: StartConversationRequest): Promise<any> {
     let now = new Date();
@@ -18,7 +44,12 @@ export function start(request: StartConversationRequest): Promise<any> {
         startedOn: now,
         deleted: false,
         updatedOn: now,
-        userIds: userIds    
+        users: userIds.map((userId: string) => {
+            return {
+                userId: userId,
+                read: false
+            };
+        })   
     };
     
     /*let message: IMessage = {
@@ -46,4 +77,16 @@ export function start(request: StartConversationRequest): Promise<any> {
                 reject(error);
             });
     });
+}
+
+function checkAllReadForUser(userId: string) {
+    conversationRepository.getUnreadForUser(userId)
+        .then((result: IConversation[]) => {
+                if (result.length === 0) {
+                    broadcastTo(userId, 'AllMessageRead', null);
+                }
+            })
+            .catch((error: string) => {
+                //reject(error);
+            });
 }

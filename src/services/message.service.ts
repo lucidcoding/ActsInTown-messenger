@@ -23,45 +23,67 @@ Array.prototype.where = function (expression: Function) {
 	return matchingElements;
 };
 
-export function post(request: PostMessageRequest): Promise<any> {
-    let now = new Date();
-
-    let message: IMessage = {
-        _id: uuid.generate(),
-        conversation: request.conversationId,
-        userId: request.userId,
-        addedOn: now,
-        deleted: false,
-        body: request.body
-    };
-
+export function post(request: PostMessageRequest): Promise<IMessage> {
     return new Promise((resolve: any, reject: any) => {
-        messageRepository.save(message)
-            .then((result: IMessage) => {
-                pushToOtherUsers(result)
-                    .then(() => {
-                        resolve(result);
+        conversationRepository.get(request.conversationId)
+            .then((conversation: IConversation) => {
+                let now = new Date();
+                conversation.updatedOn = now;
+
+                for (var user of conversation.users) {
+                    if (user.userId.toLowerCase() === request.userId.toLowerCase()) {
+                        user.read = true;
+                    } else {
+                        user.read = false;
+                    }
+                }
+
+                conversationRepository.save(conversation)
+                    .then((conversation: IConversation) => {
+                        let message: IMessage = {
+                            _id: uuid.generate(),
+                            conversation: request.conversationId,
+                            userId: request.userId,
+                            addedOn: now,
+                            deleted: false,
+                            body: request.body
+                        };
+
+                        messageRepository.save(message)
+                            .then((result: IMessage) => {
+                                pushToOtherUsers(result)
+                                    .then(() => {
+                                        resolve(result);
+                                    })
+                                    .catch((error: string) => {
+                                        reject('Error pushing to other users: ' + error);
+                                    });
+                            })
+                            .catch((error: string) => {
+                                reject('Error saving message: ' + error);
+                            });
                     })
                     .catch((error: string) => {
-                        reject('Error pushing to other users: ' + error);
+                        reject('Error saving conversation: ' + error);
                     });
             })
             .catch((error: string) => {
-                reject(error);
+                reject('Error getting conversation: ' + error);
             });
     });
 }
 
 function pushToOtherUsers(message: IMessage): Promise<any> {
     return new Promise((resolve: any, reject: any) => {
-        conversationRepository.getById(<string>(message.conversation))
+        conversationRepository.get(<string>(message.conversation))
             .then((conversation: IConversation) => {
-                var otherUserIds = conversation.userIds.where((item: string) => {
-                    return item.toLowerCase() !== message.userId.toLowerCase();
+                var otherUsers: any[] = conversation.users.where((user: any) => {
+                    return user.userId.toLowerCase() !== message.userId.toLowerCase();
                 });
 
-                for (let userId of otherUserIds) {
-                    broadcastTo(userId, 'MessageAdded', message);
+                for (let user of otherUsers) {
+                    broadcastTo(user.userId, 'MessageAdded', message);
+                    broadcastTo(user.userId, 'UnreadMessage', message);
                 }
 
                 resolve();

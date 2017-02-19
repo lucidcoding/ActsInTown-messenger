@@ -16,7 +16,14 @@ export var ConversationSchema: Schema = new Schema({
     updatedOn: {
         type: Date
     },
-    userIds: [String]
+    users: [{
+        userId: {
+            type: String
+        },
+        read: {
+            type: Boolean
+        }
+    }]
 });
 
 export const Conversation: Model<IConversationModel> = model<IConversationModel>('Conversation', ConversationSchema);

@@ -95,21 +95,5 @@ function broadcastTo(userId, event, data) {
             reject('Error getting socket: ' + error);
         });
     });
-    //socketIo.emit(event, data);
-    //resolve();
-    /* SocketConnection
-        .find({ 'userId': userId })
-        .sort({ addedOn: 'desc' })
-        .limit(1)
-        .exec((error: any, result: ISocketConnection[]) => {
-            if (error) {
-                reject('Error getting user: ' + error);
-            } else {
-                let socketConnection: ISocketConnection = result[0];
-                let socketId = socketConnection.socketId;
-                socketIo.to(socketId).emit(event, data);
-                resolve();
-            }
-        });*/
 }
 exports.broadcastTo = broadcastTo;
