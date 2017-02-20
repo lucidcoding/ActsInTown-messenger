@@ -1,8 +1,5 @@
-//import { mongo, Types } from 'mongoose';
-//import { Message, IMessageModel } from '../models/message.model';
 import { IMessage } from '../interfaces/message.interface';
 import { IConversation } from '../interfaces/conversation.interface';
-//import { Conversation } from '../models/conversation.model';
 import { PostMessageRequest } from '../requests/message/post.message.request';
 import { broadcastTo } from './socket.service';
 import conversationRepository = require('../repositories/conversation.repository');
@@ -38,7 +35,32 @@ export function post(request: PostMessageRequest): Promise<IMessage> {
                     }
                 }
 
-                conversationRepository.save(conversation)
+                let message: IMessage = {
+                    _id: uuid.generate(),
+                    conversation: request.conversationId,
+                    userId: request.userId,
+                    addedOn: now,
+                    deleted: false,
+                    body: request.body
+                };
+
+                Promise.all([
+                    conversationRepository.save(conversation),
+                    messageRepository.save(message)
+                ])
+                    .then((result: any[]) => { 
+                        /*conversationSaveResult: IConversation = result[0];
+                        messageSaveResult: IMessage = result[1];
+                        console.log(conversationSaveResult);
+                        console.log(messageSaveResult);*/
+                        let messageSaveResult: IMessage = result[1];
+                        resolve(messageSaveResult);
+                        pushToOtherUsers(messageSaveResult);
+                    })
+                    .catch((error: string) => {
+                        reject('Error saving conversation/message/pushing: ' + error);
+                    });
+                /* conversationRepository.save(conversation)
                     .then((conversation: IConversation) => {
                         let message: IMessage = {
                             _id: uuid.generate(),
@@ -65,7 +87,7 @@ export function post(request: PostMessageRequest): Promise<IMessage> {
                     })
                     .catch((error: string) => {
                         reject('Error saving conversation: ' + error);
-                    });
+                    });*/
             })
             .catch((error: string) => {
                 reject('Error getting conversation: ' + error);

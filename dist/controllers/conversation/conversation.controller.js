@@ -2,7 +2,7 @@
 var conversationService = require("../../services/conversation.service");
 var conversationRepository = require("../../repositories/conversation.repository");
 function get(req, res) {
-    conversationService.get(req.params.id, req.user.id)
+    conversationService.get(req.params.conversationId, req.user.id)
         .then(function (result) {
         res.status(200).json(result);
     })

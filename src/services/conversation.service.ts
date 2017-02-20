@@ -18,14 +18,11 @@ export function get(conversationId: string, userId: string): Promise<IConversati
 
                 conversationUser.read = true;
         
-                conversationRepository.save(conversation)
-                    .then((conversation: IConversation) => {
-                        resolve(conversation);
-                        checkAllReadForUser(userId);
-                    })
-                    .catch((error: string) => {
-                        reject('Error marking conversation as unread: ' + error);
-                    });
+                return conversationRepository.save(conversation);
+            })
+            .then((conversation: IConversation) => {
+                resolve(conversation);
+                checkAllReadForUser(userId);
             })
             .catch((error: string) => {
                 reject('Error getting conversation: ' + error);
@@ -52,26 +49,10 @@ export function start(request: StartConversationRequest): Promise<any> {
         })   
     };
     
-    /*let message: IMessage = {
-        _id: uuid.generate(),
-        conversation: request.id,
-        userId: request.userId,
-        addedOn: now,
-        deleted: false,
-        body: request.messageBody
-    };*/
-    
     return new Promise((resolve: any, reject: any) => { 
         conversationRepository.save(conversation)
             .then((result: IConversation) => {
                 resolve(result);
-                /*messageRepository.save(message)
-                    .then((result: IMessage) => {
-                        resolve(result);
-                    })
-                    .catch((error: string) => {
-                        reject(error);
-                    });*/
             })
             .catch((error: string) => {
                 reject(error);

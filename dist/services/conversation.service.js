@@ -10,14 +10,11 @@ function get(conversationId, userId) {
                 return user.userId.toLowerCase() === userId.toLowerCase();
             });
             conversationUser.read = true;
-            conversationRepository.save(conversation)
-                .then(function (conversation) {
-                resolve(conversation);
-                checkAllReadForUser(userId);
-            })
-                .catch(function (error) {
-                reject('Error marking conversation as unread: ' + error);
-            });
+            return conversationRepository.save(conversation);
+        })
+            .then(function (conversation) {
+            resolve(conversation);
+            checkAllReadForUser(userId);
         })
             .catch(function (error) {
             reject('Error getting conversation: ' + error);
@@ -41,25 +38,10 @@ function start(request) {
             };
         })
     };
-    /*let message: IMessage = {
-        _id: uuid.generate(),
-        conversation: request.id,
-        userId: request.userId,
-        addedOn: now,
-        deleted: false,
-        body: request.messageBody
-    };*/
     return new Promise(function (resolve, reject) {
         conversationRepository.save(conversation)
             .then(function (result) {
             resolve(result);
-            /*messageRepository.save(message)
-                .then((result: IMessage) => {
-                    resolve(result);
-                })
-                .catch((error: string) => {
-                    reject(error);
-                });*/
         })
             .catch(function (error) {
             reject(error);

@@ -28,33 +28,58 @@ function post(request) {
                     user.read = false;
                 }
             }
-            conversationRepository.save(conversation)
-                .then(function (conversation) {
-                var message = {
-                    _id: uuid.generate(),
-                    conversation: request.conversationId,
-                    userId: request.userId,
-                    addedOn: now,
-                    deleted: false,
-                    body: request.body
-                };
+            var message = {
+                _id: uuid.generate(),
+                conversation: request.conversationId,
+                userId: request.userId,
+                addedOn: now,
+                deleted: false,
+                body: request.body
+            };
+            Promise.all([
+                conversationRepository.save(conversation),
                 messageRepository.save(message)
-                    .then(function (result) {
-                    pushToOtherUsers(result)
-                        .then(function () {
-                        resolve(result);
-                    })
-                        .catch(function (error) {
-                        reject('Error pushing to other users: ' + error);
-                    });
-                })
-                    .catch(function (error) {
-                    reject('Error saving message: ' + error);
-                });
+            ])
+                .then(function (result) {
+                /*conversationSaveResult: IConversation = result[0];
+                messageSaveResult: IMessage = result[1];
+                console.log(conversationSaveResult);
+                console.log(messageSaveResult);*/
+                var messageSaveResult = result[1];
+                resolve(messageSaveResult);
+                pushToOtherUsers(messageSaveResult);
             })
                 .catch(function (error) {
-                reject('Error saving conversation: ' + error);
+                reject('Error saving conversation/message/pushing: ' + error);
             });
+            /* conversationRepository.save(conversation)
+                .then((conversation: IConversation) => {
+                    let message: IMessage = {
+                        _id: uuid.generate(),
+                        conversation: request.conversationId,
+                        userId: request.userId,
+                        addedOn: now,
+                        deleted: false,
+                        body: request.body
+                    };
+
+                    messageRepository.save(message)
+                        .then((result: IMessage) => {
+                            pushToOtherUsers(result)
+                                .then(() => {
+                                    resolve(result);
+                                })
+                                .catch((error: string) => {
+                                    reject('Error pushing to other users: ' + error);
+                                });
+                        })
+                        .catch((error: string) => {
+                            reject('Error saving message: ' + error);
+                        });
+                })
+                .catch((error: string) => {
+                    reject('Error saving conversation: ' + error);
+                });*/
         })
             .catch(function (error) {
             reject('Error getting conversation: ' + error);
@@ -72,7 +97,7 @@ function pushToOtherUsers(message) {
             for (var _i = 0, otherUsers_1 = otherUsers; _i < otherUsers_1.length; _i++) {
                 var user = otherUsers_1[_i];
                 socket_service_1.broadcastTo(user.userId, 'MessageAdded', message);
-                socket_service_1.broadcastTo(user.userId, 'UnreadMessages', message);
+                socket_service_1.broadcastTo(user.userId, 'UnreadMessage', message);
             }
             resolve();
         })
