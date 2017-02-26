@@ -1,6 +1,5 @@
 "use strict";
 var conversationService = require("../../services/conversation.service");
-var conversationRepository = require("../../repositories/conversation.repository");
 function get(req, res) {
     conversationService.get(req.params.conversationId, req.user.id)
         .then(function (result) {
@@ -12,7 +11,7 @@ function get(req, res) {
 }
 exports.get = get;
 function getForCurrentUser(req, res) {
-    conversationRepository.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
+    conversationService.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
         .then(function (result) {
         res.status(200).json(result);
     })
@@ -22,11 +21,7 @@ function getForCurrentUser(req, res) {
 }
 exports.getForCurrentUser = getForCurrentUser;
 function getForCurrentUserAndUser(req, res) {
-    var userIds = [
-        req.params.userId,
-        req.user.id
-    ];
-    conversationRepository.getForUserIds(userIds)
+    conversationService.getForCurrentUserAndUser(req.user.id, req.params.userId)
         .then(function (result) {
         res.status(200).json(result);
     })

@@ -18,7 +18,7 @@ export function get(req: express.Request, res: express.Response) {
 }
 
 export function getForCurrentUser(req: express.Request, res: express.Response) {
-   conversationRepository.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
+   conversationService.getForCurrentUser(req.user.id, req.params.page, req.params.pageSize)
         .then((result: IConversation[]) => {
             res.status(200).json(result);
         })
@@ -28,12 +28,7 @@ export function getForCurrentUser(req: express.Request, res: express.Response) {
 }
 
 export function getForCurrentUserAndUser(req: express.Request, res: express.Response) {
-    let userIds: string[] = [ 
-        req.params.userId,
-        req.user.id
-    ];
-
-    conversationRepository.getForUserIds(userIds)
+    conversationService.getForCurrentUserAndUser(req.user.id, req.params.userId)
         .then((result: IConversation) => {
             res.status(200).json(result);
         })
